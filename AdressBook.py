@@ -73,7 +73,18 @@ class Phone(Field):
 
     def __init__(self, value):
         # super().__init__(phone) ... for the future
-        self.value = self.__preformating(value)
+        self.__value = None
+
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, new_value):
+        if re.search(r'^\+[0-9)(-]{12,16}$', new_value):
+            self.__value = self.__preformating(new_value)
+        else:
+            print("Incorrect phone...")
 
     def __repr__(self):
         return f"{self.value}"
@@ -84,17 +95,23 @@ class Phone(Field):
 
 class Birthday(Field):
 
-    def _check_birthday(self, birthday: str) -> datetime:
-
-        birthday_data = birthday.split('-')
-        birthday_data = datetime(year=int(birthday_data[0]), month=int(
-            birthday_data[1]), day=int(birthday_data[2]))
-
-        return birthday_data
-
     def __init__(self, value):
         # super().__init__(name) ... for the future
-        self.value = self._check_birthday(value)
+        self.__value = None
+
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, new_value):
+        birthday_data = new_value.split('-')
+        birthday_data = datetime(year=int(birthday_data[0]), month=int(
+            birthday_data[1]), day=int(birthday_data[2]))
+        if birthday_data:
+            self.__value = birthday_data
+        else:
+            print("Incorrect birthday...")
 
     def __repr__(self):
         return f"{self.value.date()}"
@@ -459,7 +476,7 @@ def handler_showall(_=None) -> list:
     return: list of string of all users'''
 
     all_list = ["Entries in your contact book:"]
-    for records in contact_dictionary.iterator(10):
+    for records in contact_dictionary.iterator(10):  # N_count from?
         volume = ""
         for record in records:
             if record.birthday:
