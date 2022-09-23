@@ -26,7 +26,7 @@ import re
 import random
 
 
-#------------------------------------------------------------------------ 1
+# ------------------------------------------------------------------------ 1
 def my_generator_names(quantity_limit: int) -> str:
     """Simplest generator Names (example: Name_0, Name_1, ...) in limited quantities
     incoming: quantity_limit (int)
@@ -38,7 +38,7 @@ def my_generator_names(quantity_limit: int) -> str:
         counter += 1
 
 
-#------------------------------------------------------------------------- 2
+# ------------------------------------------------------------------------- 2
 def my_generator_phones(quantity_limit: int) -> str:
     """Simplest generator Phones (example: +38(063)0000000, +38(063)0000001,...) in limited quantities
     incoming: quantity_limit (int)
@@ -54,6 +54,25 @@ class AddressBook(UserDict):
 
     def add_record(self, record):
         self.data[record.name.value] = record
+        # self.COUNTER_OF_RECORDS += 1
+
+    def iterator(self, N_count: int):
+        # self.MAX_LIMIT = N_count
+        # self.current_value = 0
+        current_value = 0
+        dictionary_iterator = iter(self.data)
+        while current_value < len(self.data):
+            volume = []
+            for i in range(N_count):
+                try:
+                    volume.append(self.data[next(dictionary_iterator)])
+                except:
+                    current_value = len(self.data)
+            yield volume
+            current_value += N_count
+
+    # def __iter__(self): # inherited from dictionary(UserDict) method
+    #     return self
 
 
 class Field:  # super for all fields ... for the future
@@ -66,6 +85,12 @@ class Name(Field):
         # super().__init__(name) ... for the future
         self.value = value
 
+    def __repr__(self):
+        return f"{self.value}"
+
+    def __str__(self):  # not needed ?
+        return f"{self.value}"
+
 
 class Phone(Field):
 
@@ -73,15 +98,21 @@ class Phone(Field):
 
         value = value.replace("-", "")
         if value[3] != "(":
-            value = "(".join((value[:3], value[3:]))
+            value = "(".join((value[: 3], value[3:]))
         if value[7] != ")":
-            value = ")".join((value[:7], value[7:]))
+            value = ")".join((value[: 7], value[7:]))
 
         return value
 
     def __init__(self, value):
         # super().__init__(phone) ... for the future
         self.value = self.__preformating(value)
+
+    def __repr__(self):
+        return f"{self.value}"
+
+    def __str__(self):  # not needed ?
+        return f"{self.value}"
 
 
 class Birthday(Field):
@@ -97,6 +128,12 @@ class Birthday(Field):
     def __init__(self, value):
         # super().__init__(name) ... for the future
         self.value = self._check_birthday(value)
+
+    def __repr__(self):
+        return f"{self.value.date()}"
+
+    def __str__(self):  # not needed
+        return f"{self.value.date()}"
 
 
 class Record():  # add remove change  field
@@ -487,7 +524,7 @@ def handler_showall(_=None) -> str:
     all_list = "Entries in your contact book:"
     for name in contact_dictionary:
         if contact_dictionary[name].birthday:
-            all_list += f"\n\n{name}, birthday: {contact_dictionary[name].birthday.value.date()} ({contact_dictionary[name].days_to_birthday()} days to next birthday. Will be {contact_dictionary[name].years_old()} years old)\n-> phone(s): "
+            all_list += f"\n\n{name}, birthday: {contact_dictionary[name].birthday} ({contact_dictionary[name].days_to_birthday()} days to next birthday. Will be {contact_dictionary[name].years_old()} years old)\n-> phone(s): "
         else:
             all_list += f"\n\n{name}, birthday: {contact_dictionary[name].birthday}\n-> phone(s): "
         for phone in contact_dictionary[name].phones:
@@ -506,7 +543,7 @@ def handler_show(user_command: list) -> str:
 
     name = user_command[1]
     if contact_dictionary[name].birthday:
-        user_information = f"\n\n{name}, birthday: {contact_dictionary[name].birthday.value.date()} ({contact_dictionary[name].days_to_birthday()} days to next birthday. Will be {contact_dictionary[name].years_old()} years old)\n-> phone(s): "
+        user_information = f"\n\n{name}, birthday: {contact_dictionary[name].birthday} ({contact_dictionary[name].days_to_birthday()} days to next birthday. Will be {contact_dictionary[name].years_old()} years old)\n-> phone(s): "
     else:
         user_information = f"\n\n{name}, birthday: {contact_dictionary[name].birthday}\n-> phone(s): "
     for phone in contact_dictionary[name].phones:
@@ -623,4 +660,6 @@ def main():
 
 
 if __name__ == "__main__":
+    for i in contact_dictionary.iterator(6):
+        print(i)
     exit(main())
