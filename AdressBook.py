@@ -81,9 +81,20 @@ class Field:  # super for all fields ... for the future
 
 class Name(Field):
 
-    def __init__(self, value):
+    def __init__(self):
         # super().__init__(name) ... for the future
-        self.value = value
+        self.__value = None
+
+    @property
+    def value(self):
+        return self.__value
+
+    @value.setter
+    def value(self, new_value):
+        if new_value[0] not in "_0123456789!@$%^&*()-+?<>~`|\/":
+            self.__value = new_value
+        else:
+            print("At the beginning there can be only a Latin letter")
 
     def __repr__(self):
         return f"{self.value}"
@@ -521,6 +532,22 @@ def handler_showall(_=None) -> str:
     incoming: not_matter: any
     return: string of all users'''
 
+    all_list = ["Entries in your contact book:"]
+    for records in contact_dictionary.iterator(10):
+        volume = ""
+        for record in records:
+            if record.birthday:
+                volume += f"\n\n{record.name}, birthday: {record.birthday} ({record.days_to_birthday()} days to next birthday. Will be {record.years_old()} years old)\n-> phone(s): "
+            else:
+                volume += f"\n\n{record.name}, birthday: {record.birthday}\n-> phone(s): "
+            for phone in record.phones:
+                volume += f"{phone.value}; "
+        all_list.append(volume)
+
+    return all_list
+
+
+'''
     all_list = "Entries in your contact book:"
     for name in contact_dictionary:
         if contact_dictionary[name].birthday:
@@ -531,6 +558,7 @@ def handler_showall(_=None) -> str:
             all_list += f"{phone.value}; "
 
     return all_list
+'''
 
 
 @ input_error
@@ -652,7 +680,12 @@ def main():
         user_command = input()
         user_request = parser(user_command)
         bot_answer = main_handler(user_request)
-        print(bot_answer)
+        if isinstance(bot_answer, str):
+            print(bot_answer)
+        else:
+            for volume in bot_answer:
+                print(volume)
+                input("Press Enter for next Volume... ")
         if bot_answer == "Good bye!":
             break
 
@@ -660,6 +693,4 @@ def main():
 
 
 if __name__ == "__main__":
-    for i in contact_dictionary.iterator(6):
-        print(i)
     exit(main())
