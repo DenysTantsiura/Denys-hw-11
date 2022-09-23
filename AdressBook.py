@@ -1,53 +1,9 @@
-'''Task 9 + 10
-Bot. A console bot helper that will recognize commands entered
-from the keyboard and respond accordingly.
-The bot accepts commands:
-"hello", replies to the console "How can I help you?"
-"add ...". With this command, the bot saves a new contact in memory. Instead of ... the user enters the name and phone number, necessarily with a space.
-"change ..." With this command, the bot stores the new phone number of the existing contact in memory. Instead of ... the user enters the name and phone number, necessarily with a space.
-"phone ...." With this command, the bot outputs the phone number for the specified contact to the console. Instead of ... the user enters the name of the contact whose number should be displayed.
-"show all". With this command, the bot outputs all saved contacts with phone numbers to the console.
-"good bye", "close", "exit" by any of these commands, the bot ends its work after outputting "Good bye!" to the console.
-And from 10:
-All classes from the task have been implemented.
-Record entries in AddressBook are stored as values in a dictionary. Record.name.value is used as keys.
-Record stores the Name object in a separate attribute.
-Record stores a list of Phone objects in a separate attribute.
-Record implements methods for adding/removing/editing Phone objects.
-AddressBook implements the add_record method, which adds a Record to self.data.
-
-"add phone ..." With this command, the bot saves a new phones to an existing contact record in memory. Instead of ... the user enters the name and phone number(s), necessarily with a space.'''
+'''Task 11...
+'''
 
 from collections import UserDict
 from datetime import datetime, timedelta
 import re
-# import os
-# import pickle
-import random
-
-
-# ------------------------------------------------------------------------ 1
-def my_generator_names(quantity_limit: int) -> str:
-    """Simplest generator Names (example: Name_0, Name_1, ...) in limited quantities
-    incoming: quantity_limit (int)
-    return: yield next name
-    """
-    counter = 0
-    while counter < quantity_limit:
-        yield f"Name_{counter}"
-        counter += 1
-
-
-# ------------------------------------------------------------------------- 2
-def my_generator_phones(quantity_limit: int) -> str:
-    """Simplest generator Phones (example: +38(063)0000000, +38(063)0000001,...) in limited quantities
-    incoming: quantity_limit (int)
-    return: yield next phone
-    """
-    counter = 0
-    while counter < quantity_limit:
-        yield "+38(063){:07}".format(counter)
-        counter += 1
 
 
 class AddressBook(UserDict):
@@ -237,37 +193,7 @@ class Record():  # add remove change  field
                 return (True,)  # Is it correct instead of a break?
 
 
-# ------------------------------------------------------------3
-def gen_address_book(max_names: int) -> AddressBook:
-    """Simplest generator simplest AddressBook
-    incoming: max_names is quantity limit (int)
-    return: address_book - instance of the filled class AddressBook
-    """
-    address_book = AddressBook()
-    counter = 0
-    name = my_generator_names(max_names)
-    phone = my_generator_phones(max_names * 3)
-    while counter < max_names:
-        record = Record(next(name))
-        phones_quantity = random.choice([1, 2, 3, ])
-
-        while phones_quantity:
-            record.add_phone(next(phone))
-            phones_quantity -= 1
-
-        birthday_ = random.choice([0, 1, ])
-        if birthday_:
-            record.add_birthday(
-                str(random.randint(1922, 2005))+"-"+str(random.randint(1, 12))+"-"+str(random.randint(1, 28)))
-
-        address_book.add_record(record)
-        counter += 1
-
-    return address_book
-
-
-contact_dictionary = gen_address_book(100)
-# contact_dictionary = AddressBook()
+contact_dictionary = AddressBook()
 
 
 def validation_add(user_command, number_format, name):
@@ -526,11 +452,11 @@ def handler_exit(_=None) -> str:
 
 
 @ input_error
-def handler_showall(_=None) -> str:
+def handler_showall(_=None) -> list:
     '''"show all". With this command, the bot outputs all saved
     contacts with phone numbers to the console.
     incoming: not_matter: any
-    return: string of all users'''
+    return: list of string of all users'''
 
     all_list = ["Entries in your contact book:"]
     for records in contact_dictionary.iterator(10):
