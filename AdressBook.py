@@ -1,5 +1,5 @@
-'''Task 11...
-'''
+"""Task 11...
+"""
 
 from collections import UserDict
 from datetime import datetime, timedelta
@@ -22,44 +22,51 @@ class AddressBook(UserDict):
             for i in range(N_count):
                 try:
                     volume.append(self.data[next(dictionary_iterator)])
-                except:
+                except StopIteration:
                     current_value = len(self.data)
             yield volume
             current_value += N_count
 
-    # def __iter__(self): # inherited from dictionary(UserDict) method
-    #     return self
+    def __str__(self):
+        return f"AddressBook(Records:{self.data})"
 
 
-class Field:  # super for all fields ... for the future
-    pass
+class Field:  # super for all fields
+
+    def __init__(self, value):
+        self._value = None
+        self.value = value
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, new_value):
+        self._value = new_value
 
 
 class Name(Field):
 
-    def __init__(self):
-        # super().__init__(name) ... for the future
-        self.__value = None
-
-    @property
-    def value(self):
-        return self.__value
-
-    @value.setter
+    @Field.value.setter
     def value(self, new_value):
         if new_value[0] not in "_0123456789!@$%^&*()-+?<>~`|\/":
-            self.__value = new_value
+            self._value = new_value
         else:
             print("At the beginning there can be only a Latin letter")
 
-    def __repr__(self):
-        return f"{self.value}"
-
-    def __str__(self):  # not needed ?
+    def __str__(self):
         return f"{self.value}"
 
 
 class Phone(Field):
+
+    @Field.value.setter
+    def value(self, new_value):
+        if re.search(r'^\+[0-9)(-]{12,16}$', new_value):
+            self._value = self.__preformating(new_value)
+        else:
+            print("Incorrect phone...")
 
     def __preformating(self, value: str) -> str:
 
@@ -71,63 +78,31 @@ class Phone(Field):
 
         return value
 
-    def __init__(self, value):
-        # super().__init__(phone) ... for the future
-        self.__value = None
-
-    @property
-    def value(self):
-        return self.__value
-
-    @value.setter
-    def value(self, new_value):
-        if re.search(r'^\+[0-9)(-]{12,16}$', new_value):
-            self.__value = self.__preformating(new_value)
-        else:
-            print("Incorrect phone...")
-
-    def __repr__(self):
-        return f"{self.value}"
-
-    def __str__(self):  # not needed ?
+    def __str__(self):
         return f"{self.value}"
 
 
 class Birthday(Field):
 
-    def __init__(self, value):
-        # super().__init__(name) ... for the future
-        self.__value = None
-
-    @property
-    def value(self):
-        return self.__value
-
-    @value.setter
+    @Field.value.setter
     def value(self, new_value):
-        birthday_data = new_value.split('-')
-        birthday_data = datetime(year=int(birthday_data[0]), month=int(
-            birthday_data[1]), day=int(birthday_data[2]))
+        birthday_data = datetime.strptime(new_value, "%Y-%m-%d")
         if birthday_data:
-            self.__value = birthday_data
+            self._value = birthday_data
         else:
             print("Incorrect birthday...")
 
-    def __repr__(self):
-        return f"{self.value.date()}"
-
-    def __str__(self):  # not needed
+    def __str__(self):
         return f"{self.value.date()}"
 
 
 class Record():  # add remove change  field
 
-    birthday = None
-
     def __init__(self, name, *phones):
 
-        self.name = Name(name)
+        self.name = Name(name)  # .value
         self.phones = []
+        self.birthday = None
         if phones:
             for phone in phones:
                 self.add_phone(phone)
@@ -154,7 +129,7 @@ class Record():  # add remove change  field
     def add_birthday(self, birthday):
 
         if not self.birthday:
-            self.birthday = Birthday(birthday)
+            self.birthday = Birthday(birthday)  # .value
             return (True,)
         else:
             return (False, f"Birthday already recorded for {self.name.value}. You can change it.")
@@ -164,18 +139,18 @@ class Record():  # add remove change  field
         if not self.birthday:
             return (False, f"Birthday not specified for {self.name.value}. You can add it.")
         else:
-            self.birthday = Birthday(birthday)
+            self.birthday = Birthday(birthday)  # .value
             return (True,)
 
     def add_phone(self, phone_new):
 
-        phone_new = Phone(phone_new).value
+        phone_new = Phone(phone_new)  # .value
         for phone in self.phones:
             if phone_new == phone.value:
                 print(f"{phone_new} already recorded for {self.name.value}")
                 return False
 
-        self.phones.append(Phone(phone_new))
+        self.phones.append(phone_new)  # (Phone(phone_new))
         return True
 
     def remove_phone(self, phone_to_remove):
@@ -206,8 +181,11 @@ class Record():  # add remove change  field
         for index, phone in enumerate(self.phones):
             if phone.value == phone_to_change:
                 self.phones.remove(phone)
-                self.phones.insert(index, Phone(phone_new))
+                self.phones.insert(index, Phone(phone_new))  # .value
                 return (True,)  # Is it correct instead of a break?
+
+    def __str__(self):
+        return f"Record(Name:{self.name}; Phones: {self.phones}; Birthday: {self.birthday})"
 
 
 contact_dictionary = AddressBook()
@@ -215,7 +193,7 @@ contact_dictionary = AddressBook()
 
 def validation_add(user_command, number_format, name):
 
-    if len(user_command) < 2:
+    if not name:  # len(user_command) < 2:
         return "Give me name OR name and phone please\n"
 
     if name in contact_dictionary:
@@ -235,7 +213,7 @@ def validation_add(user_command, number_format, name):
 
 def validation_add_phone(user_command, number_format, name):
 
-    if len(user_command) < 3:
+    if len(user_command) < 3:  # or not name:
         return "Give me name and new phone(s) please\n"
 
     if name[0].isdigit():
@@ -254,7 +232,7 @@ def validation_change(user_command, number_format, name):
     if not contact_dictionary:
         return "No contact records available. You can add records\n"
 
-    if len(user_command) < 4:
+    if len(user_command) < 4:  # or not name:
         return "Give me name and 2 phones please (current and new)\n"
 
     if name[0].isdigit():
@@ -272,7 +250,7 @@ def validation_phone(user_command, name):
     if not contact_dictionary:
         return "No contact records available\n"
 
-    if len(user_command) < 2:
+    if not name:  # len(user_command) < 2 or not name:
         return "Give me a name too, please\n"
 
     if name[0].isdigit():
@@ -302,7 +280,7 @@ def validation_birthday(user_command, name):
     if not contact_dictionary:
         return "No contact records available\n"
 
-    if len(user_command) < 3:
+    if len(user_command) < 3:  # or not name:
         return "Give me a name and birthday, please\n"
 
     if name[0].isdigit():
@@ -314,18 +292,16 @@ def validation_birthday(user_command, name):
     if 1900 > int(user_command[2].split("-")[0]) > datetime.now().year - 16:
         return "The year of birth is not correct!\n"
     else:
-        birthday_data = user_command[2].split('-')
         try:
-            birthday_data = datetime(year=int(birthday_data[0]), month=int(
-                birthday_data[1]), day=int(birthday_data[2]))
+            birthday_data = datetime.strptime(user_command[2], "%Y-%m-%d")
         except Exception:
             return "The calendar date is not possible!\n"
 
 
 def input_error(handler):
-    '''User error handler
+    """User error handler
     incoming: handler (function)
-    return: result(str) or exception_function(handler(user_command))'''
+    return: result(str) or exception_function(handler(user_command))"""
     # => user input command items in the list
     def exception_function(user_command):
 
@@ -333,6 +309,8 @@ def input_error(handler):
         validation = None
         if len(user_command) > 1:
             name = user_command[1]
+        else:
+            name = None
 
         if handler.__name__ == "handler_showall":
             if not contact_dictionary:
@@ -351,7 +329,7 @@ def input_error(handler):
         elif handler.__name__ == "handler_add_birthday":
             validation = validation_birthday(user_command, name)
 
-        if handler.__name__ == "handler_add":
+        elif handler.__name__ == "handler_add":
             validation = validation_add(user_command, number_format, name)
 
         elif handler.__name__ == "handler_change_birthday":
@@ -388,11 +366,11 @@ def input_error(handler):
 
 @ input_error
 def handler_phone(user_command: list) -> str:
-    '''"phone ...." With this command, the bot outputs the phone number for the specified
+    """"phone ...." With this command, the bot outputs the phone number for the specified
     contact to the console. Instead of ... the user enters the name of the contact
     whose number should be displayed.
     incoming: list of user command (name of user)
-    return: phone number of user'''
+    return: phone number of user"""
     phones = ""
     name = user_command[1]
     for phone in (contact_dictionary[name]).phones:
@@ -403,11 +381,11 @@ def handler_phone(user_command: list) -> str:
 
 @ input_error
 def handler_change(user_command: list) -> str:  # list of str
-    '''"change ..." With this command, the bot stores the new phone number
+    """"change ..." With this command, the bot stores the new phone number
     of the existing contact in memory. Instead of ... the user enters
     the name and phone numbers (current and new), necessarily with a space.
     incoming: list of user command (name of user)
-    return: string'''
+    return: string"""
     name = user_command[1]
     current_phone = user_command[2]
     new_phone = user_command[3]
@@ -423,14 +401,14 @@ def handler_change(user_command: list) -> str:  # list of str
 
 @ input_error
 def handler_add(user_command: list) -> str:
-    '''"add ...". With this command, the bot saves
+    """"add ...". With this command, the bot saves
     a new contact in memory (in the dictionary, for
     example). Instead of ... the user enters the name
     and phone number(s), necessarily with a space.
     incoming: list of user command (name of user)
-    return: string'''
+    return: string"""
     name = user_command[1]
-    new_record = Record(name)  # Record(Name(name))
+    new_record = Record(name)  # Record(Name(name))  .value
     contact_dictionary.add_record(new_record)
     if len(user_command) > 2:
         phones = user_command[2:]
@@ -446,12 +424,12 @@ def handler_add(user_command: list) -> str:
 
 @ input_error
 def handler_add_phone(user_command: list) -> str:
-    '''"add ...". With this command, the bot saves
+    """"add ...". With this command, the bot saves
     a new phones to contact in memory (in the dictionary, for
     example). Instead of ... the user enters the name
     and phone number(s), necessarily with a space.
     incoming: list of user command (name of user)
-    return: string'''
+    return: string"""
     name = user_command[1]
     phones = user_command[2:]
     verdict = False
@@ -470,10 +448,10 @@ def handler_exit(_=None) -> str:
 
 @ input_error
 def handler_showall(_=None) -> list:
-    '''"show all". With this command, the bot outputs all saved
+    """"show all". With this command, the bot outputs all saved
     contacts with phone numbers to the console.
     incoming: not_matter: any
-    return: list of string of all users'''
+    return: list of string of all users"""
 
     all_list = ["Entries in your contact book:"]
     for records in contact_dictionary.iterator(10):  # N_count from?
@@ -490,7 +468,7 @@ def handler_showall(_=None) -> list:
     return all_list
 
 
-'''
+"""
     all_list = "Entries in your contact book:"
     for name in contact_dictionary:
         if contact_dictionary[name].birthday:
@@ -501,16 +479,16 @@ def handler_showall(_=None) -> list:
             all_list += f"{phone.value}; "
 
     return all_list
-'''
+"""
 
 
 @ input_error
 def handler_show(user_command: list) -> str:
-    '''"show information about a specific user". With this command, the bot outputs
+    """"show information about a specific user". With this command, the bot outputs
     birthday, number of days until next birthday and
     phone numbers to the console.
     incoming: user_command[1] is name of user
-    return: string of info about user'''
+    return: string of info about user"""
 
     name = user_command[1]
     if contact_dictionary[name].birthday:
@@ -525,12 +503,12 @@ def handler_show(user_command: list) -> str:
 
 @ input_error
 def handler_add_birthday(user_command: list) -> str:
-    '''"add birthday...". With this command, the bot saves
+    """"add birthday...". With this command, the bot saves
     a new information about user in memory (in the dictionary, for
     example). Instead of ... the user enters the name
     and birthday (in format YYYY-MM-DD), necessarily with a space.
     incoming: list of user command (name of user and birthday)
-    return: string'''
+    return: string"""
     name = user_command[1]
     verdict = contact_dictionary[name].add_birthday(user_command[2])
 
@@ -544,12 +522,12 @@ def handler_add_birthday(user_command: list) -> str:
 
 @ input_error
 def handler_change_birthday(user_command: list) -> str:  # list of str
-    '''"change birthday ..." With this command, the bot stores the
+    """"change birthday ..." With this command, the bot stores the
     "new birthday" (if the previous one was wrong)
     of the existing contact in memory. Instead of ... the user enters
     the name and birthday (in format YYYY-MM-DD), necessarily with a space.
     incoming: list of user command (name of user, and birthday)
-    return: string'''
+    return: string"""
     name = user_command[1]
     user_birthday = user_command[2]
     verdict = contact_dictionary[name].change_birthday(user_birthday)
@@ -563,9 +541,9 @@ def handler_change_birthday(user_command: list) -> str:  # list of str
 
 
 def main_handler(user_command: list):
-    '''All possible bot commands
+    """All possible bot commands
     incoming: user command
-    return: function according to the command'''
+    return: function according to the command"""
     all_command = {"hello": handler_hello,
                    "add": handler_add,
                    "addphone": handler_add_phone,
@@ -590,11 +568,11 @@ def handler_hello(_=None) -> str:
 
 
 def parser(user_input: str) -> list:
-    '''Command parser. The part responsible for parsing
+    """Command parser. The part responsible for parsing
     strings entered by the user, extracting keywords and
     command modifiers from the string.
     incoming: string from user
-    return: list of comands'''
+    return: list of comands"""
     words = user_input.strip().split(" ")
     if len(words) >= 2 and words[0].lower() == "good" and words[1].lower() == "bye":
         words = ["goodbye"]
