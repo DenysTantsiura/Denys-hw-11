@@ -590,8 +590,8 @@ def parser(user_input: str) -> list:
 
 
 def main():
-    """A new address book was generated at the beginning
-    line 112: contact_dictionary = gen_AddressBook(16)
+    """A new address book was not generated at the beginning
+    ...
     """
     # global contact_dictionary
     # load contact dict if it available:
